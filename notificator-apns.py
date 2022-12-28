@@ -1,4 +1,6 @@
 import asyncio
+import redis
+import json
 from uuid import uuid4
 from aioapns import APNs, NotificationRequest, PushType
 
@@ -16,7 +18,7 @@ def notifier(token, title, message, category):
 
     return request
 
-async def run():
+async def run(r):
     apns_cert_client = APNs(
         client_cert='certificates.pem',
         use_sandbox=True,
@@ -27,28 +29,30 @@ async def run():
     stats_error = 0
 
     while True:
-        rows = [
-            "b9597c02545ecc074bf321540001d1d2b6689b5353fc01b4284ae28607788746"
-        ]
+        row = r.blpop("notificator", 10)
 
-        print("...")
-
-        if len(rows) == 0:
-            await asyncio.sleep(10)
+        if row == None:
             continue
 
-        # sending notifications
-        for row in rows:
-            print(row)
+        print(row)
 
-            stats_sent += 1
+        stats_sent += 1
 
-            request = notifier(row, "hello", "world", "root")
+        try:
+            data = json.loads(row[1])
+            request = notifier(data["token"], data["title"], data["message"], data["category"])
+
             response = await apns_cert_client.send_notification(request)
-
             print(response.status, response.description)
 
+        except Exception as e:
+            print(e)
+            pass
+
+
+r = redis.Redis("10.241.0.240")
+
 loop = asyncio.get_event_loop()
-loop.create_task(run())
+loop.create_task(run(r))
 loop.run_forever()
 
