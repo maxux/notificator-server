@@ -129,50 +129,6 @@ class NotificatorManager:
 
             return jsonify(self.success())
 
-
-
-
-        """
-        @self.app.route('/login', methods=['GET', 'POST'])
-        def login():
-            content = {
-                'success': None
-            }
-
-            if request.method == 'POST':
-                salted = "%s:%s" % (request.form['passwd'], request.form['email'])
-                password = hashlib.md5(salted.encode('utf-8'))
-
-                print(request.form['email'])
-                print(password.hexdigest())
-
-                cursor = g.db.cursor()
-                query = "SELECT id, email FROM users WHERE email = %s AND password = %s"
-
-                cursor.execute(query, (request.form['email'], password.hexdigest()))
-                user = cursor.fetchone()
-
-                if user == None:
-                    content['success'] = False
-                    return render_template("login.html", **content)
-
-                print(user)
-
-                session['uid'] = user[0]
-                session['email'] = user[1]
-
-                query = "SELECT uid, level FROM admins WHERE uid = %s"
-
-                cursor.execute(query, (user[0]))
-                admin = cursor.fetchone()
-
-                session['admin'] = (admin != None)
-
-                return redirect("/admin/events")
-
-            return render_template("login.html", **content)
-        """
-
     def listen(self):
         self.app.run(
             host="0.0.0.0",
